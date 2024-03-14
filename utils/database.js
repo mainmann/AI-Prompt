@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-let isConnected = ""; //track the connection status
+let isConnected = "false"; //track the connection status
 
 export const connectToDB = async () => {
   mongoose.set("strictQuery", true);
@@ -10,6 +10,10 @@ export const connectToDB = async () => {
     return;
   }
   try {
+    if (!process.env.MONGOGB_URI) {
+      throw new Error("MONGODB_URI is not defined");
+    }
+
     await mongoose.connect(process.env.MONGOGB_URI, {
       dbName: "share_prompt",
     });
