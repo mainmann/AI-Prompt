@@ -6,11 +6,7 @@ import Form from "@components/Form";
 
 // Main Component
 const EditPrompt = () => {
-  const router = useRouter();
-  // Intialzing search of prompt
-  const searchParams = useSearchParams();
-  const promptId = searchParams.get("id");
-
+  // const router = useRouter();
   const [submitting, setIsSubmitting] = useState(false);
   const [post, setPost] = useState({
     prompt: "",
@@ -20,6 +16,11 @@ const EditPrompt = () => {
   useEffect(() => {
     const getPromptDetails = async () => {
       try {
+        const router = useRouter();
+        const searchParams = new URLSearchParams(router.asPath.split("?")[1]);
+        const promptId = searchParams.get("id");
+        if (!promptId) return;
+
         const response = await fetch(`/api/prompt/${promptId}`);
         if (!response.ok) {
           throw new Error("Failed to fetch prompt details");
@@ -34,18 +35,22 @@ const EditPrompt = () => {
         console.error("Error fetching prompt details:", error);
       }
     };
-    if (promptId) getPromptDetails();
-  }, [promptId]);
 
-  //Function Update prompt
+    getPromptDetails();
+  }, []);
 
   const updatePrompt = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!promptId) return alert("Prompt ID not found");
-
     try {
+      const router = useRouter();
+      const searchParams = new URLSearchParams(router.asPath.split("?")[1]);
+      const promptId = searchParams.get("id");
+      if (!promptId) {
+        throw new Error("Prompt ID not found");
+      }
+
       const response = await fetch(`/api/prompt/${promptId}`, {
         method: "PATCH",
         body: JSON.stringify({
@@ -53,11 +58,12 @@ const EditPrompt = () => {
           tag: post.tag,
         }),
       });
+
       if (response.ok) {
         router.push("/");
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error updating prompt:", error);
     } finally {
       setIsSubmitting(false);
     }
